@@ -1,228 +1,149 @@
 <!doctype html>
-<html lang="en-us">
-<head>
-	<meta charset="utf-8" />
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-	<title>Sonic the Hedgehog 2</title>
+<html lang="it">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Sega Master System emulator for your browser">
+        <meta name="keywords" content="Sega Master System emulator, coding, emulation, SEGA, games, 1987">
 
-	<link type="text/css" rel="stylesheet" href="css/fonts.css" />
-	<style>
-		html, body {
-			font-family: arial, sans-serif;
-			margin: 0;
-			padding: 0;
-			width: 100%;
-			height: 100%;
-			overflow: hidden;
-			background-color: #000;
-			text-align: center;
-		}
-		canvas {
-			height: 100%;
-			margin: auto;
-			display: block;
-			background-color: #000;
-			image-rendering: pixelated;
-		}
-		.spinner {
-			height: 30px;
-			width: 30px;
-			margin: 20px 0 0 20px;
-			display: inline-block;
-			vertical-align: top;
-			animation: rotation 0.8s linear infinite;
-			border-left: 5px solid #ebebeb;
-			border-right: 5px solid #ebebeb;
-			border-bottom: 5px solid #ebebeb;
-			border-top: 5px solid #787878;
-			border-radius: 100%;
-			background-color: #bdd72e;
-		}
-		@keyframes rotation {
-			from { transform: rotate(0deg); }
-			to { transform: rotate(360deg); }
-		}
-		#status {
-			display: inline-block;
-			vertical-align: top;
-			margin-top: 30px;
-			margin-left: 20px;
-			font-weight: bold;
-			color: #787878;
-		}
-		#progress {
-			height: 20px;
-			width: 300px;
-		}
-		#output {
-			width: 100%;
-			height: 200px;
-			margin: 10px auto 0;
-			display: block;
-			background-color: black;
-			color: white;
-			font-family: 'Lucida Console', Monaco, monospace;
-			outline: none;
-		}
+        <link rel="icon" type="image/png" href="img/favicon.ico"/>
+        <title>Zenga - version 0.9a</title>
 
-		/* --- Mobile Controls --- */
-		.controls {
-			position: absolute;
-			bottom: 20px;
-			left: 20px;
-			z-index: 9999;
-			user-select: none;
-		}
-		.dpad {
-			position: relative;
-			width: 120px;
-			height: 120px;
-		}
-		.dpad button {
-			position: absolute;
-			width: 40px;
-			height: 40px;
-			background: rgba(255,255,255,0.2);
-			border: 2px solid #999;
-			border-radius: 5px;
-			color: white;
-			font-weight: bold;
-		}
-		.dpad .up { top: 0; left: 40px; }
-		.dpad .down { bottom: 0; left: 40px; }
-		.dpad .left { left: 0; top: 40px; }
-		.dpad .right { right: 0; top: 40px; }
+        <link rel="stylesheet" href="css/main.css"/>
+        
+        <script src="js/sn79489.js"></script>
+        <script src="js/smsMmu.js"></script>
+        <script src="js/smsVdp.js"></script>
+        <script src="js/testMMU.js"></script>
+        <script src="js/z80cpu.js"></script>
+        <script src="js/cpuTestRunner.js"></script>
+        <script src="js/cartridge.js"></script>
+        <script src="js/serializer.js"></script>
+        <script src="js/main.js"></script>
 
-		.buttons {
-			position: absolute;
-			right: 20px;
-			bottom: 40px;
-		}
-		.buttons button {
-			width: 60px;
-			height: 60px;
-			margin-left: 20px;
-			border-radius: 50%;
-			border: 2px solid #aaa;
-			background: rgba(255,0,0,0.3);
-			color: white;
-			font-weight: bold;
-		}
-	</style>
-</head>
-<body>
-	<div class="spinner" id="spinner" style="display: none;"></div>
-	<div id="status" style="display: none;">Downloading...</div>
-	<progress id="progress" value="0" max="100" hidden="hidden"></progress>
-	<canvas id="canvas" onclick="window.focus();" oncontextmenu="event.preventDefault();"></canvas>
-	<textarea id="output" style="display: none;" rows="8"></textarea>
+        <style>
+            /* --- Mobile Controls --- */
+            .controls {
+                position: absolute;
+                bottom: 20px;
+                left: 20px;
+                z-index: 9999;
+                user-select: none;
+            }
+            .dpad {
+                position: relative;
+                width: 120px;
+                height: 120px;
+            }
+            .dpad button {
+                position: absolute;
+                width: 40px;
+                height: 40px;
+                background: rgba(255,255,255,0.2);
+                border: 2px solid #999;
+                border-radius: 5px;
+                color: white;
+                font-weight: bold;
+            }
+            .dpad .up { top: 0; left: 40px; }
+            .dpad .down { bottom: 0; left: 40px; }
+            .dpad .left { left: 0; top: 40px; }
+            .dpad .right { right: 0; top: 40px; }
 
-	<!-- On-screen Controls -->
-	<div class="controls">
-		<div class="dpad">
-			<button class="up" data-key="ArrowUp">▲</button>
-			<button class="down" data-key="ArrowDown">▼</button>
-			<button class="left" data-key="ArrowLeft">◀</button>
-			<button class="right" data-key="ArrowRight">▶</button>
-		</div>
-	</div>
-	<div class="buttons">
-		<button data-key="KeyZ">A</button>
-		<button data-key="KeyX">B</button>
-	</div>
+            .buttons {
+                position: absolute;
+                right: 20px;
+                bottom: 40px;
+            }
+            .buttons button {
+                width: 60px;
+                height: 60px;
+                margin-left: 20px;
+                border-radius: 50%;
+                border: 2px solid #aaa;
+                background: rgba(255,0,0,0.3);
+                color: white;
+                font-weight: bold;
+            }
+        </style>
+    </head>
 
-	<script>
-		// Service Worker
-		if ('serviceWorker' in navigator) {
-			navigator.serviceWorker.register('sw.js').catch(err => {
-				console.log('ServiceWorker registration failed: ', err);
-			});
-		}
+    <body>
+        <div id="titleDiv"><img src="img/zenga.png" /> <b>Zenga</b> emulator v0.9a - <span id="fpsSpan"></span>
+            <a class="tooltip" href=""><img src="img/camera.png" /><span><img src="img/defaultss.png" id="savestateImg" /></span></a>
+            <a class="tooltip" href=""><img src="img/info.png" /><span style="min-width: 160px">z, x and arrows to play, \ to ffwd, p to pause, o is the SMS pause button, F2 and F3 to save and load</span></a>
+        </div>
 
-		// Emulator Module
-		var statusElement = document.getElementById('status');
-		var progressElement = document.getElementById('progress');
-		var spinnerElement = document.getElementById('spinner');
+        <canvas width=800 height=400 id="debugCanvas" style="display: none;"></canvas>
+        <canvas width=256 height=240 id="smsdisplay"></canvas>
 
-		var Module = {
-			preRun: [],
-			postRun: [],
-			print: (function () {
-				var element = document.getElementById('output');
-				if (element) element.value = '';
-				return function (text) {
-					if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-					console.log(text);
-					if (element) {
-						element.value += text + "\n";
-						element.scrollTop = element.scrollHeight;
-					}
-				};
-			})(),
-			printErr: function (text) { console.error(text); },
-			canvas: (function () {
-				var canvas = document.getElementById('canvas');
-				canvas.addEventListener("webglcontextlost", function (e) {
-					alert('WebGL context lost. Reload the page.');
-					e.preventDefault();
-				}, false);
-				return canvas;
-			})(),
-			setStatus: function (text) {
-				if (!Module.setStatus.last) Module.setStatus.last = {time: Date.now(), text: ''};
-				if (text === Module.setStatus.last.text) return;
-				var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-				var now = Date.now();
-				if (m && now - Module.setStatus.last.time < 30) return;
-				Module.setStatus.last.time = now;
-				Module.setStatus.last.text = text;
-				if (m) {
-					text = m[1];
-					progressElement.value = parseInt(m[2]) * 100;
-					progressElement.max = parseInt(m[4]) * 100;
-					progressElement.hidden = false;
-					spinnerElement.hidden = false;
-				} else {
-					progressElement.hidden = true;
-					if (!text) spinnerElement.style.display = 'none';
-				}
-				statusElement.innerHTML = text;
-			},
-			totalDependencies: 0,
-			monitorRunDependencies: function (left) {
-				this.totalDependencies = Math.max(this.totalDependencies, left);
-				Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
-			}
-		};
-		Module.setStatus('Downloading...');
+        <button id="fsbutton" onclick="fullscreen();" style="display: none;">Go fullscreen!</button>
+        
+        <!-- rom selector -->
+        <div id="fileselector">
+            <button style="cursor:pointer" id="romLoaderBtn">Load rom</button>
+            <input type="file" id="cartridgeSelector" style="display:none" onchange="handleCartridgeUpload(this.files)">(load .sms or .sg rom)<br/><br/>
+        </div>
 
-		window.onerror = function () {
-			Module.setStatus('Exception thrown, see console');
-			spinnerElement.style.display = 'none';
-			Module.setStatus = function (text) {
-				if (text) Module.printErr('[post-exception status] ' + text);
-			};
-		};
+        <!-- software selector -->
+        <span id="softLoader" style="float:left;clear:both;margin-top:10px">Load pd game/demo: 
+            <select name="software" id="softwareSelector" onchange="loadSoftware(this)">
+                <option value="run">--</option>
+                <option value="GenesisProject-Lambo.sms">Lambo/Genesys Project (demo)</option>
+                <option value="Be No Sqr 1.01.sms">Be No Sqr (demo/PAL)</option>
+                <option value="2048.sms">2048 (homebrew game)</option>
+                <option value="DTS_Final_DemoVersion.sms">Do The Same (homebrew game)</option>
+                <option value="BaraBuruu-SMS-1.00.sms">Bara Buru (homebrew game)</option>
+                <option value="FlightOfPigarus-SMS-1.11.sms">Flight Of Pigarus (homebrew game)</option>
+                <option value="rick.sms">Jewel Jones (homebrew game demo)</option>
+                <option value="lander2_v0C.sms">Lander2 (homebrew game)</option>
+                <option value="WingWarriors.sms">Wing Warriors (homebrew game)</option>
+                <option value="monkeylad.sms">Monkey Lad (homebrew game)</option>
+                <option value="BruceLee-SMS-1.00.sms">Bruce Lee (homebrew game)</option>
+            </select>
+        </span>
 
-		// Mobile controls -> Keyboard events
-		const pressKey = (code, type) => {
-			document.dispatchEvent(new KeyboardEvent(type, { code, key: code }));
-		};
+        <!-- NTSC/PAL selector -->
+        <span id="vdpMode" style="float:left;clear:both;margin-top:10px">TV Standard
+            <select name="vdpMode" id="vdpModeSelector" onchange="setVdpStandard(this)">
+                <option value="NTSC">NTSC</option>
+                <option value="PAL">PAL</option>
+            </select>
+        </span>
 
-		document.querySelectorAll("button[data-key]").forEach(btn => {
-			const key = btn.getAttribute("data-key");
-			btn.addEventListener("touchstart", e => {
-				e.preventDefault();
-				pressKey(key, "keydown");
-			});
-			btn.addEventListener("touchend", e => {
-				e.preventDefault();
-				pressKey(key, "keyup");
-			});
-		});
-	</script>
+        <!-- On-screen Controls -->
+        <div class="controls">
+            <div class="dpad">
+                <button class="up" data-key="ArrowUp">▲</button>
+                <button class="down" data-key="ArrowDown">▼</button>
+                <button class="left" data-key="ArrowLeft">◀</button>
+                <button class="right" data-key="ArrowRight">▶</button>
+            </div>
+        </div>
+        <div class="buttons">
+            <button data-key="KeyZ">A</button>
+            <button data-key="KeyX">B</button>
+            <button data-key="KeyO">Pause</button>
+        </div>
 
-	<script async defer src="index.js"></script>
-</body>
+        <script>
+            // Map touch buttons -> keyboard events
+            const pressKey = (code, type) => {
+                document.dispatchEvent(new KeyboardEvent(type, { code, key: code }));
+            };
+
+            document.querySelectorAll("button[data-key]").forEach(btn => {
+                const key = btn.getAttribute("data-key");
+                btn.addEventListener("touchstart", e => {
+                    e.preventDefault();
+                    pressKey(key, "keydown");
+                });
+                btn.addEventListener("touchend", e => {
+                    e.preventDefault();
+                    pressKey(key, "keyup");
+                });
+            });
+        </script>
+    </body>
 </html>
+
